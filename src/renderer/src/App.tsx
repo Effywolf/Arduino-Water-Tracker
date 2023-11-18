@@ -4,6 +4,8 @@ import { Avatar, Divider, Grid, Stack, Typography } from '@mui/joy'
 import { Sheet } from '@mui/joy'
 import { CssVarsProvider } from '@mui/joy/styles'
 import './components/App.css'
+import cat from './assets/cat.jpg'
+import React, { useEffect, useState } from 'react'
 
 function App(): JSX.Element {
   const handleButtonClick = (face: number) => {
@@ -12,9 +14,27 @@ function App(): JSX.Element {
     }
   }
 
+  const category = 'happiness'
+  const url = `https://api.api-ninjas.com/v1/quotes?category=${category}`
+  const headers = {
+    'X-Api-Key': 'Wt7p8XVIN2uHC7EPGW6D3w==pse0eemaqBIXaGIE',
+    'Content-Type': 'application/json'
+  }
+
+  let [quotes, setQuotes] = React.useState('')
+  let [author, setAuthor] = React.useState('')
+
+  useEffect(() => {
+    fetch(url, { method: 'GET', headers: headers }).then(async (response) => {
+      const data = await response.json()
+      setQuotes(data[0].quote)
+      setAuthor(data[0].author)
+    })
+  }, [])
+
   return (
     <CssVarsProvider defaultMode="dark">
-      <Sheet variant="plain">
+      <Sheet variant="plain" sx={{ maxWidth: '90%', margin: 'auto', marginTop: '20px' }}>
         <Sheet variant="soft" color="primary">
           <Stack
             direction="row"
@@ -49,13 +69,13 @@ function App(): JSX.Element {
             </div>
             <div>
               <Stack direction={'row'} alignItems={'center'} gap={2} sx={{ paddingLeft: '20px' }}>
-                <Avatar src="https://cdn.discordapp.com/attachments/894682213831016529/1175140200259780608/IMG_1558.png?ex=656a2598&is=6557b098&hm=92ac96a8227a0742bdb1a3fabecd0e9627d56a5ebc1b1ad982e671f2cf7fc9f6&" />
+                <Avatar src={cat} />
                 <Typography level="h3">{'Effy'}</Typography>
               </Stack>
             </div>
           </Stack>
         </Sheet>
-        <Grid container spacing={2} sx={{ marginTop: '20px' }}>
+        <Grid container spacing={2} sx={{ marginTop: '20px', flexGrow: 1 }}>
           <Grid xs={5}>
             <Sheet sx={{ padding: '20px' }} variant="soft" color="primary">
               <Typography level="h2" sx={{ paddingTop: '0px', paddingBottom: '10px' }}>
@@ -71,8 +91,12 @@ function App(): JSX.Element {
               </Stack>
             </Sheet>
           </Grid>
-          <Grid xs={7}>
-            <Sheet sx={{ padding: '20px' }} variant="soft" color="primary">
+          <Grid xs={7} sx={{ display: 'flex', flexGrow: 1 }}>
+            <Sheet
+              sx={{ padding: '20px', display: 'flex', alignItems: 'center' }}
+              variant="soft"
+              color="primary"
+            >
               <Stack direction={'column'} spacing={2}>
                 <Sheet
                   variant="soft"
@@ -81,12 +105,17 @@ function App(): JSX.Element {
                     display: 'flex',
                     alignContent: 'center',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    justifyItems: 'center'
                   }}
                 >
-                  <Typography level="h2">"{'quote body'}"</Typography>
+                  <Typography level="h2" sx={{ textAlign: 'center' }}>
+                    "{quotes}"
+                  </Typography>
                 </Sheet>
-                <Typography level="body-lg">- {'quote author'}</Typography>
+                <Typography level="body-lg" sx={{ textAlign: 'center' }}>
+                  {author}
+                </Typography>
               </Stack>
             </Sheet>
           </Grid>
