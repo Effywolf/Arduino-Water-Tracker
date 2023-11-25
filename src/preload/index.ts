@@ -1,31 +1,17 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { SerialPort } from 'serialport'
-import { ReadlineParser } from 'serialport'
-
-const port = new SerialPort({ path: '/dev/ttyACM0', baudRate: 115200 })
-
-// Open errors will be emitted as an error event
-port.on('error', function (err) {
-  console.log('Error: ', err)
-})
-
-const lineStream = port.pipe(new ReadlineParser())
-
-lineStream.on('data', (line) => {
-  console.log(`[Arduino] ${line}`)
-})
+import { ArduinoData } from '../types'
 
 // Custom APIs for renderer
+let handlers: { output?: (data: ArduinoData) => void } = {}
+
+ipcRenderer.on('output', (_, data) => handlers.output?.(data))
+
 const api = {
-  write(data: any) {
-    port.write(data, function (err) {
-      if (err) {
-        return console.log('Error on write: ', err.message)
-      }
-      console.log('message written')
-    })
-  }
+  zeroScale: () => ipcRenderer.send('zero-scale'),
+  loadFrame: (frame: number) => ipcRenderer.send('load-frame', frame),
+  handleOutput: (callback: (data: ArduinoData) => void) => (handlers.output = callback),
+  clearHandlers: () => (handlers = {})
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

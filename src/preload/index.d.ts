@@ -1,7 +1,10 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 type api = {
-  write(data: any): void
+  loadFrame: (frame: number) => void
+  zeroScale: () => void
+  handleOutput: (callback: (data: ArduinoData) => void) => void
+  clearHandlers: () => void
 }
 
 declare global {

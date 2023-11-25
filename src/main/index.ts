@@ -1,7 +1,22 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+import { SerialPort, ReadlineParser } from 'serialport'
+const port = new SerialPort({
+  path: process.platform == 'win32' ? 'COM3' : '/dev/ttyACM0',
+  baudRate: 9600
+})
+
+// Open errors will be emitted as an error event
+port.on('error', function (err) {
+  console.log('Error: ', err)
+})
+
+const lineStream = port.pipe(new ReadlineParser())
+
+port.write('zero-scale')
 
 function createWindow(): void {
   // Create the browser window.
@@ -34,6 +49,15 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  lineStream.on('data', (line) => {
+    let data = JSON.parse(line)
+    mainWindow.webContents.send('output', data)
+  })
+
+  ipcMain.on('zero-scale', () => port.write('zero-scale'))
+
+  ipcMain.on('load-frame', (_, frame) => port.write(`load-frame-${frame}`))
 }
 
 // This method will be called when Electron has finished
